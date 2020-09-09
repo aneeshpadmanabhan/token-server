@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: token-server-simple
+spec:
+  volumes:
+  - name: html
+    emptyDir: {}
+  containers:
+  - name: uuidgen
+    image: aneeshpadmanabhan/uuidgen
+    envFrom:
+    - prefix: C_
+      configMapRef:
+          name: token-server-simple-conf
+    env:
+    - name: C_INTERVAL
+      valueFrom:
+        configMapKeyRef:
+            name: token-server-simple-conf
+            key: interval_10
+    - name: INTERVAL
+      value: "$(C_INTERVAL)"      
+    args:
+    - "$(INTERVAL)"
+    volumeMounts:
+    - name: html
+      mountPath: htdocs
+  - name: web-server
+    image: nginx:alpine
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+    ports:
+    - containerPort: 80
+      protocol: TCP
